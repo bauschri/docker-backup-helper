@@ -32,6 +32,28 @@ detect_docker_images_for_backup() {
   fi
 }
 
+stop_docker_images() {
+  for docker_name in "${docker_images_for_backup[@]}"; do
+    docker_image="$(docker inspect --format='{{.Config.Hostname}}' "$docker_name")"
+
+    echo "Stop docker images for $docker_name"
+
+    execute_cmd "docker stop \"$docker_name\""
+
+  done
+}
+
+start_docker_images() {
+  for docker_name in "${docker_images_for_backup[@]}"; do
+    docker_image="$(docker inspect --format='{{.Config.Hostname}}' "$docker_name")"
+
+    echo "Start docker images for $docker_name"
+
+    execute_cmd "docker start \"$docker_name\""
+
+  done
+}
+
 remove_old_docker_images() {
   for docker_name in "${docker_images_for_backup[@]}"; do
     echo "Remove old docker images for $docker_name"
@@ -95,9 +117,13 @@ backup_docker() {
 
   remove_old_docker_images
 
+  stop_docker_images
+
   backup_docker_inspect
 
   backup_docker_images
 
   backup_docker_bind_volumes
+
+  start_docker_images
 }
